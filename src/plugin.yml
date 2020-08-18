@@ -1,0 +1,7 @@
+name: CommandTriggers
+version: 1.20
+main: me.bluemond.commandtriggers.CommandTriggers
+authors: [Bluemond]
+api-version: 1.16
+commands:
+permissions:

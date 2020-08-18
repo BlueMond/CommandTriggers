@@ -1,0 +1,55 @@
+
+
+# All triggers come with a default permission of "commandtriggers.triggername", regardless of other assigned permissions.
+# The commands will only be run for a player if they have ANY of the designated permissions.
+# All permissions DEFAULT TO FALSE. You must assign them using a permission plugin.
+#
+# The possible events include:
+#   - onPlayerRespawn
+#   - onPlayerItemConsume
+#   - onPlayerJoin
+#   - onPlayerItemBreak
+#   - onPlayerChangedWorld
+#   - onPlayerDeath
+#   - onPlayerItemHeld
+#   - onBlockPlace
+#   - onBlockBreak
+# *REFER TO SPIGOT DOCUMENTATION FOR EVENT EXPLANATION
+#
+# Instances of {player} in the commands will be replaced with the activating-player's name.
+
+# The materials event argument is a whitelist of items accepted for triggering the event.
+# The notMaterials event argument is a blacklist of items not accepted for triggering the event.
+# It would not make sense to use both at the same time.
+
+
+triggers:
+  exampletrigger:
+    events:
+      onPlayerItemConsume:
+        materials:
+          - "GOLDEN_APPLE"
+    commands:
+      - "give {player} minecraft:golden_apple 1"
+    permissions:
+      - examplepermission.exampletrigger
+
+  exampletrigger2:
+    events:
+      onPlayerItemConsume:
+        notMaterials:
+          - "GOLDEN_APPLE"
+    commands:
+      - "give {player} minecraft:apple 1"
+    permissions:
+      - examplepermission.exampletrigger
+
+# old trigger formatting
+#
+# anothertrigger:
+#   events:
+#     - onPlayerRespawn
+#   commands:
+#     - "give {player} minecraft:golden_apple 1"
+#   permissions:
+#     - examplepermission.anothertrigger
