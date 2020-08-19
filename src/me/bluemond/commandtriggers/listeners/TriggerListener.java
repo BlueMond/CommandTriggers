@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -17,6 +18,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class TriggerListener implements Listener {
 
@@ -27,13 +29,13 @@ public class TriggerListener implements Listener {
     }
 
     @EventHandler
-    public void onItemUse(PlayerInteractEvent event){
+    public void onPlayerItemUse(PlayerInteractEvent event){
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         Action action = event.getAction();
 
-        if(action.equals(Action.)){
-
+        if(action.equals(Action.RIGHT_CLICK_AIR) || action.equals(Action.RIGHT_CLICK_BLOCK)){
+            initiateAsyncTriggers(player, "onPlayerItemUse", item.getType(), (Event) event);
         }
     }
 
@@ -41,42 +43,42 @@ public class TriggerListener implements Listener {
     public void onBlockBreak(BlockBreakEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onBlockBreak", event.getBlock().getType());
+        initiateAsyncTriggers(player, "onBlockBreak", event.getBlock().getType(), (Event) event);
     }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onBlockPlace", event.getBlockPlaced().getType());
+        initiateAsyncTriggers(player, "onBlockPlace", event.getBlockPlaced().getType(), (Event) event);
     }
 
     @EventHandler
     public void onPlayerItemBreak(PlayerItemBreakEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onPlayerItemBreak", event.getBrokenItem().getType());
+        initiateAsyncTriggers(player, "onPlayerItemBreak", event.getBrokenItem().getType(), (Event) event);
     }
 
     @EventHandler
     public void onPlayerItemHeld(PlayerItemHeldEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onPlayerItemBreak", player.getInventory().getItemInMainHand().getType());
+        initiateAsyncTriggers(player, "onPlayerItemHeld", player.getInventory().getItemInMainHand().getType(), (Event) event);
     }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event){
         Player player = event.getEntity();
 
-        initiateAsyncTriggers(player, "onPlayerDeath", null);
+        initiateAsyncTriggers(player, "onPlayerDeath", null, (Event) event);
     }
 
     @EventHandler
     public void onPlayerChangedWorld(PlayerChangedWorldEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onPlayerChangeWorld", null);
+        initiateAsyncTriggers(player, "onPlayerChangedWorld", null, (Event) event);
     }
 
 
@@ -84,14 +86,14 @@ public class TriggerListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onPlayerJoin", null);
+        initiateAsyncTriggers(player, "onPlayerJoin", null, (Event) event);
     }
 
     @EventHandler
     public void onPlayerItemConsume(PlayerItemConsumeEvent event){
         Player player = event.getPlayer();
 
-        initiateAsyncTriggers(player, "onPlayerItemConsume", event.getItem().getType());
+        initiateAsyncTriggers(player, "onPlayerItemConsume", event.getItem().getType(), (Event) event);
     }
 
 
@@ -101,7 +103,7 @@ public class TriggerListener implements Listener {
 
         // wait 10 ticks (.5 seconds)   PLAYERRESPAWN requires this because the player doesn't exist yet
         plugin.getServer().getScheduler().runTaskLater(plugin, () ->
-                initiateAsyncTriggers(player, "onPlayerRespawn", null), 10);
+                initiateAsyncTriggers(player, "onPlayerRespawn", null, (Event) event), 10);
 
 
     }
@@ -110,48 +112,23 @@ public class TriggerListener implements Listener {
     This may be used later to attempt to group all asyncs into one function,
     but it causes confusion with how to still determine which triggers are in use
      */
-    private void initiateAsyncTriggers(Player player, String eventName, Material usedMaterial){
+    private void initiateAsyncTriggers(Player player, String eventName, Material usedMaterial, Event event){
         Bukkit.getScheduler().runTaskAsynchronously(plugin, new Runnable() {
             @Override
             public void run() {
 
                 List<Trigger> triggers = plugin.getConfigHandler().getTriggers();
+                System.out.println(eventName+ " FIRED! Checking Triggers For Handling Event.");
 
                 for (Trigger trigger : triggers) {
                     TriggerEvent triggerEvent = trigger.getEvent(eventName);
+                    System.out.println("Checking " + trigger.getName() + " trigger for usage of " + eventName);
 
-                    if (triggerEvent != null){
-                        // procure argument lists
-                        List<Material> materialWhitelist = triggerEvent.getPermittedMaterials();
-                        List<Material> materialBlacklist = triggerEvent.getUnpermittedMaterials();
-
-                        boolean valid = true;
-
-                        // argument checks against event parameters
-                        if(usedMaterial != null) {
-                            if (!materialWhitelist.isEmpty()) {
-                                valid = false;
-                                for (Material material : materialWhitelist) {
-                                    if (material.equals(usedMaterial)) {
-                                        valid = true;
-                                        break;
-                                    }
-                                }
-                            } else if (!materialBlacklist.isEmpty()) {
-                                for (Material material : materialWhitelist) {
-                                    if (material.equals(usedMaterial)) {
-                                        valid = false;
-                                        break;
-                                    }
-                                }
-                            }
+                    if (triggerEvent != null) {
+                        System.out.println("Found " + eventName + " in " + trigger.getName() + " trigger.");
+                        if (triggerEvent.checkArguments(event, usedMaterial)) {
+                            trigger.initiate(player, plugin);
                         }
-
-                        // run the trigger
-                        if(valid) {
-                            initiateTrigger(player, trigger);
-                        }
-
                     }
                 }
 
@@ -160,28 +137,4 @@ public class TriggerListener implements Listener {
     }
 
 
-    /*
-    initiateTrigger performs a trigger's commands after checking that the target player has permission
-     */
-    private void initiateTrigger(Player player, Trigger trigger) {
-        boolean hasPermission = false;
-
-        // permissions checks
-
-        for (String permission : trigger.getPermissions()) {
-            if(player.hasPermission(permission)){
-                hasPermission = true;
-                break;
-            }
-        }
-
-        if(hasPermission){
-            ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
-            for (String command : trigger.getCommands()) {
-                command = command.replace("{player}", player.getName());
-                Bukkit.getServer().dispatchCommand(console, command);
-            }
-        }
-
-    }
 }

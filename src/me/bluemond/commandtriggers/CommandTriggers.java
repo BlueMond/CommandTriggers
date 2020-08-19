@@ -7,6 +7,7 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class CommandTriggers extends JavaPlugin {
@@ -20,7 +21,16 @@ public class CommandTriggers extends JavaPlugin {
     @Override
     public void onEnable() {
 
-        configHandler = new ConfigHandler(this);
+        try {
+            configHandler = new ConfigHandler(this);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+
         registerListeners();
         getLogger().info("CommandTriggers v" + getDescription().getVersion() + " has been enabled!");
     }
@@ -34,7 +44,9 @@ public class CommandTriggers extends JavaPlugin {
     public void registerDefaultTriggerPermissions(List<Trigger> triggers){
         for (Trigger trigger : triggers) {
             for (String permission : trigger.getPermissions()) {
-                getServer().getPluginManager().addPermission(new Permission(permission, PermissionDefault.FALSE));
+                if(getServer().getPluginManager().getPermission(permission) == null){
+                    getServer().getPluginManager().addPermission(new Permission(permission, PermissionDefault.FALSE));
+                }
             }
         }
     }

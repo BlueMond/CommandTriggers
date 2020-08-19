@@ -1,55 +1,58 @@
-
-
-# All triggers come with a default permission of "commandtriggers.triggername", regardless of other assigned permissions.
-# The commands will only be run for a player if they have ANY of the designated permissions.
-# All permissions DEFAULT TO FALSE. You must assign them using a permission plugin.
+# SERVER WILL NOT RECOGNIZE NEW EDITS UNTIL RESTARTED
 #
+#   ## PERMISSIONS ##
+# All triggers come with a default permission of "commandtriggers.triggername", regardless of other assigned permissions.
+# The trigger will only initiate if the triggering player has ANY of the designated permissions.
+# All newly defined permissions will register DEFAULT TO FALSE. You must assign them using a permission plugin.
+#
+#   ## EVENTS ##
 # The possible events include:
 #   - onPlayerRespawn
-#   - onPlayerItemConsume
+#   - onPlayerItemConsume   (material event)
 #   - onPlayerJoin
-#   - onPlayerItemBreak
+#   - onPlayerItemBreak     (material event)
 #   - onPlayerChangedWorld
 #   - onPlayerDeath
-#   - onPlayerItemHeld
-#   - onBlockPlace
-#   - onBlockBreak
+#   - onPlayerItemHeld      (material event)
+#   - onPlayerItemUse       (material event)  ##this is not a native spigot event, but it's executed when a player right clicks with an item
+#   - onBlockPlace          (material event)
+#   - onBlockBreak          (material event)
 # *REFER TO SPIGOT DOCUMENTATION FOR EVENT EXPLANATION
 #
+#   ## COMMANDS ##
+# playerCommands will be executed automatically by the player. (make sure to use a "/" before these)
+# serverCommands will be executed automatically by the server.
 # Instances of {player} in the commands will be replaced with the activating-player's name.
-
+#
+#   ## MATERIAL ARGUMENTS ##
 # The materials event argument is a whitelist of items accepted for triggering the event.
 # The notMaterials event argument is a blacklist of items not accepted for triggering the event.
-# It would not make sense to use both at the same time.
+# It would not make logical sense to attempt to use both at the same time.
 
 
 triggers:
+# this trigger will initiate when a player with permission consumes a golden apple
   exampletrigger:
     events:
+      onPlayerJoin:
       onPlayerItemConsume:
         materials:
           - "GOLDEN_APPLE"
-    commands:
+    serverCommands:
       - "give {player} minecraft:golden_apple 1"
+    playerCommands:
+      - "/give {player} minecraft:golden_apple 1"
     permissions:
       - examplepermission.exampletrigger
 
+# this trigger will initiate when a player with permission consumes anything other than a golden apple
   exampletrigger2:
     events:
+      onPlayerRespawn:
       onPlayerItemConsume:
         notMaterials:
           - "GOLDEN_APPLE"
-    commands:
+    serverCommands:
       - "give {player} minecraft:apple 1"
     permissions:
       - examplepermission.exampletrigger
-
-# old trigger formatting
-#
-# anothertrigger:
-#   events:
-#     - onPlayerRespawn
-#   commands:
-#     - "give {player} minecraft:golden_apple 1"
-#   permissions:
-#     - examplepermission.anothertrigger
