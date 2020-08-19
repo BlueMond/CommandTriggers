@@ -1,4 +1,5 @@
-# SERVER WILL NOT RECOGNIZE NEW EDITS UNTIL RESTARTED
+# ***WARNING: SERVER WILL NOT RECOGNIZE NEW EDITS UNTIL RESTARTED***
+# ***WARNING: YOU MUST DELETE OR CHANGE THE NAME OF OLD CONFIG FOR AN UPDATED ONE TO BE GENERATED***
 #
 #   ## PERMISSIONS ##
 # All triggers come with a default permission of "commandtriggers.triggername", regardless of other assigned permissions.
@@ -24,15 +25,19 @@
 # playerCommands will be executed automatically by the player. (make sure to use a "/" before these)
 # serverCommands will be executed automatically by the server.
 # Instances of {player} in the commands will be replaced with the activating-player's name.
+# BE SURE TO ESCAPE ANY YML RECOGNIZED CHARACTERS IN A COMMAND TEXT.
+# Example of escaping recognized characters with a backslash: "\\", "\"test\""
 #
 #   ## MATERIAL ARGUMENTS ##
 # The materials event argument is a whitelist of items accepted for triggering the event.
 # The notMaterials event argument is a blacklist of items not accepted for triggering the event.
 # It would not make logical sense to attempt to use both at the same time.
+# Using * before the material string will add any materials that contain the given text.
+# Quotations may not be necessary around material definitions, but keep yml from parsing the text.
 
 
 triggers:
-# this trigger will initiate when a player with permission consumes a golden apple
+# this trigger will initiate when a player with permission consumes a golden apple or joins the server
   exampletrigger:
     events:
       onPlayerJoin: {}
@@ -46,10 +51,13 @@ triggers:
     permissions:
       - examplepermission.exampletrigger
 
-# this trigger will initiate when a player with permission consumes anything other than a golden apple
+# this trigger will initiate when a player with permission consumes anything other than a golden apple or respawns or rightclicks with any pickaxe
   exampletrigger2:
     events:
       onPlayerRespawn: {}
+      onPlayerItemUse:
+        materials:
+          - "*_PICKAXE"
       onPlayerItemConsume:
         notMaterials:
           - "GOLDEN_APPLE"

@@ -18,29 +18,43 @@ public class TriggerBasicItemEvent extends TriggerEvent{
 
     @Override
     public boolean checkArguments(Event event, Material usedMaterial) {
-        boolean valid = true;
 
         // argument checks against event parameters
+
+        // if usedMaterial is not null and event has an argument for it
         if(usedMaterial != null) {
-            if (!permittedMaterials.isEmpty()) {
-                valid = false;
-                for (Material material : permittedMaterials) {
-                    if (material.equals(usedMaterial)) {
-                        valid = true;
-                        break;
+            boolean validMaterial = true;
+
+            if(hasArguments()){
+                if (!permittedMaterials.isEmpty()) {
+                    validMaterial = false;
+                    for (Material material : permittedMaterials) {
+                        if (material.equals(usedMaterial)) {
+                            validMaterial = true;
+                            break;
+                        }
                     }
-                }
-            } else if (!unpermittedMaterials.isEmpty()) {
-                for (Material material : unpermittedMaterials) {
-                    if (material.equals(usedMaterial)) {
-                        valid = false;
-                        break;
+                } else if (!unpermittedMaterials.isEmpty()) {
+                    for (Material material : unpermittedMaterials) {
+                        if (material.equals(usedMaterial)) {
+                            validMaterial = false;
+                            break;
+                        }
                     }
                 }
             }
+
+            return validMaterial;
+
+        // if usedMaterial is null
+        }else{
+            if(hasArguments()){
+                return false;
+            }else{
+                return true;
+            }
         }
 
-        return valid;
     }
 
     /*
@@ -65,11 +79,22 @@ public class TriggerBasicItemEvent extends TriggerEvent{
         List<Material> realMaterials = new ArrayList<>();
 
         for(String material : materialsList){
-            Material mat = Material.getMaterial(material.toUpperCase().trim());
+            material = material.toUpperCase().trim();
+            Material mat = Material.matchMaterial(material);
             if(mat != null){
                 realMaterials.add(mat);
+
+                // here it adds any materials with the suffix
+            }else if(material.contains("*")){
+                String segment = material.substring(material.indexOf("*")+1, material.length());
+                for(Material mcMaterial : Material.values()){
+                    if(mcMaterial.name().contains(segment)){
+                        realMaterials.add(mcMaterial);
+                    }
+                }
             }
         }
+
 
         return realMaterials;
     }

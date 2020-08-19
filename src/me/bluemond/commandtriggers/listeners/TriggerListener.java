@@ -31,11 +31,16 @@ public class TriggerListener implements Listener {
     @EventHandler
     public void onPlayerItemUse(PlayerInteractEvent event){
         Player player = event.getPlayer();
-        ItemStack item = event.getItem();
+        ItemStack item = player.getInventory().getItem(event.getHand());
         Action action = event.getAction();
+        Material type = null;
 
         if(action.equals(Action.RIGHT_CLICK_AIR) || action.equals(Action.RIGHT_CLICK_BLOCK)){
-            initiateAsyncTriggers(player, "onPlayerItemUse", item.getType(), (Event) event);
+            if(item != null){
+                type = item.getType();
+            }
+
+            initiateAsyncTriggers(player, "onPlayerItemUse", type, (Event) event);
         }
     }
 
