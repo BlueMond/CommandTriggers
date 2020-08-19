@@ -118,14 +118,11 @@ public class TriggerListener implements Listener {
             public void run() {
 
                 List<Trigger> triggers = plugin.getConfigHandler().getTriggers();
-                System.out.println(eventName+ " FIRED! Checking Triggers For Handling Event.");
 
                 for (Trigger trigger : triggers) {
                     TriggerEvent triggerEvent = trigger.getEvent(eventName);
-                    System.out.println("Checking " + trigger.getName() + " trigger for usage of " + eventName);
 
                     if (triggerEvent != null) {
-                        System.out.println("Found " + eventName + " in " + trigger.getName() + " trigger.");
                         if (triggerEvent.checkArguments(event, usedMaterial)) {
                             trigger.initiate(player, plugin);
                         }
